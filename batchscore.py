@@ -39,7 +39,7 @@ def get_prompt_from_png_info(png_info):
 
 def calc_probs(prompt, images, image_paths, png_infos):
     #prompt=get_prompt_from_png_info(png_infos[0])
-    print("\n + || Prompt: ", prompt)
+    #print("\n + || Prompt: ", prompt)
     # preprocess
     image_inputs = processor(
         images=images,

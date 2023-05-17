@@ -102,7 +102,7 @@ def load_images_and_get_info(image_paths):
     return pil_images, png_infos
 
 
-def main(image_directory, prompt=None):
+def main(image_directory, prompt=None, num_winners=10):
     image_files = get_image_files(image_directory)
 
     contenders = []
@@ -143,26 +143,20 @@ def main(image_directory, prompt=None):
 
     # Reverse the order of the winners list so that it starts with the grand winner
     losers = losers[::-1]
+    if len(losers) < num_winners:
+        num_winners = len(losers)
 
     print("\n\n + || Winners:")
-    print(f" + || 1st Place Winner: {losers[0]}")
-    print(f" + || 2nd Place Winner: {losers[1]}")
-    print(f" + || 3rd Place Winner: {losers[2]}")
-    print(f" + || 4th Place Winner: {losers[3]}")
-    print(f" + || 5th Place Winner: {losers[4]}")
-    print(f" + || 6th Place Winner: {losers[5]}")
-    print(f" + || 7th Place Winner: {losers[6]}")
-    print(f" + || 8th Place Winner: {losers[7]}")
-    print(f" + || 9th Place Winner: {losers[8]}")
-    print(f" + || 10th Place Winner: {losers[9]}")
+    for i in range(num_winners):
+        print(f" + || {i+1} Place Winner: {losers[i]}")
 
     # Create directories for winners if they don't exist
-    winner_dirs = ['1stPlace', '2ndPlace', '3rdPlace', '4thPlace', '5thPlace', '6thPlace', '7thPlace', '8thPlace', '9thPlace', '10thPlace']
+    winner_dirs = [f'{i+1}Place' for i in range(num_winners)]
     for winner_dir in winner_dirs:
         os.makedirs(os.path.join(image_directory, winner_dir), exist_ok=True)
         
     # Get the paths of the winning images
-    winning_images = [losers[i][0] for i in range(10)] 
+    winning_images = [losers[i][0] for i in range(num_winners)]
 
     # Move the winning images to their respective directories
     for i, image_path in enumerate(winning_images):
@@ -180,16 +174,17 @@ def main(image_directory, prompt=None):
 """
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(
+        prog='batchscore.py', description='Score a directory of images to find the best ones using the PickScore model.')
     parser.add_argument('--dir', required=True, help='Directory of images to process')
-    parser.add_argument('--csv', required=False, help='CSV file to write results to')
-    parser.add_argument('--overwrite', required=False, help='Overwrite existing CSV file')
+    # parser.add_argument('--csv', required=False, help='CSV file to write results to')
+    # parser.add_argument('--overwrite', required=False, help='Overwrite existing CSV file')
     parser.add_argument('--prompt', required=False, help='Prompt to use for the images being scored')
-
+    parser.add_argument('--num_winners', type=int, default=10, help='Number of winners to print and move')
     args = parser.parse_args()
 
     while True:
-        main(args.dir, args.prompt)
+        main(args.dir, args.prompt, args.num_winners)
 
         cont = input("Do you want to process another directory? (y/n): ")
         if cont.lower() != "y":
@@ -198,3 +193,7 @@ if __name__ == "__main__":
 
         args.dir = input("Please enter the new directory: ")
         args.prompt = input("Please enter the new prompt (leave blank to use PNG info): ")
+
+    # TODO: Add functionality to work on non generated images.
+    # TODO: Fix CSV exporting feature.
+    # TODO: Possibly implement a better method of ranking the image pairs that is not the current method of single elim knockout.
